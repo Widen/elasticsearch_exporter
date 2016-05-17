@@ -1,7 +1,5 @@
 package main
 
-import "encoding/json"
-
 // Elasticsearch Node Stats Structs
 
 type NodeStatsResponse struct {
@@ -190,33 +188,25 @@ type NodeStatsIndicesCacheResponse struct {
 }
 
 type NodeStatsOSResponse struct {
-	Timestamp int64 `json:"timestamp"`
-	Uptime    int64 `json:"uptime_in_millis"`
-	// LoadAvg was an array of per-cpu values pre-2.0, and is a string in 2.0
-	// Leaving this here in case we want to implement parsing logic later
-	LoadAvg json.RawMessage         `json:"load_average"`
-	CPU     NodeStatsOSCPUResponse  `json:"cpu"`
-	Mem     NodeStatsOSMemResponse  `json:"mem"`
-	Swap    NodeStatsOSSwapResponse `json:"swap"`
+	Timestamp int64   `json:"timestamp"`
+	Uptime    int64   `json:"uptime_in_millis"`
+	LoadAvg   float64 `json:"load_average"`
+	Mem       NodeStatsOSMemResponse  `json:"mem"`
+	Swap      NodeStatsOSSwapResponse `json:"swap"`
 }
-
+ 
 type NodeStatsOSMemResponse struct {
-	Free       int64 `json:"free_in_bytes"`
-	Used       int64 `json:"used_in_bytes"`
-	ActualFree int64 `json:"actual_free_in_bytes"`
-	ActualUsed int64 `json:"actual_used_in_bytes"`
+	Total       int64 `json:"total_in_bytes"`
+	Free        int64 `json:"free_in_bytes"`
+	Used        int64 `json:"used_in_bytes"`
+	FreePercent int64 `json:"free_percent"`
+	UsedPercent int64 `json:"used_percent"`
 }
 
 type NodeStatsOSSwapResponse struct {
+	Total int64 `json:"total_in_bytes"`
 	Used int64 `json:"used_in_bytes"`
 	Free int64 `json:"free_in_bytes"`
-}
-
-type NodeStatsOSCPUResponse struct {
-	Sys   int64 `json:"sys"`
-	User  int64 `json:"user"`
-	Idle  int64 `json:"idle"`
-	Steal int64 `json:"stolen"`
 }
 
 type NodeStatsProcessResponse struct {
@@ -228,15 +218,11 @@ type NodeStatsProcessResponse struct {
 }
 
 type NodeStatsProcessMemResponse struct {
-	Resident     int64 `json:"resident_in_bytes"`
-	Share        int64 `json:"share_in_bytes"`
 	TotalVirtual int64 `json:"total_virtual_in_bytes"`
 }
 
 type NodeStatsProcessCPUResponse struct {
 	Percent int64 `json:"percent"`
-	Sys     int64 `json:"sys_in_millis"`
-	User    int64 `json:"user_in_millis"`
 	Total   int64 `json:"total_in_millis"`
 }
 
@@ -246,19 +232,16 @@ type NodeStatsHTTPResponse struct {
 }
 
 type NodeStatsFSResponse struct {
-	Timestamp int64                     `json:"timestamp"`
+	Timestamp     int64  `json:"timestamp"`
+	Total     NodeStatsFSDataResponse `json:"total"`
 	Data      []NodeStatsFSDataResponse `json:"data"`
 }
 
 type NodeStatsFSDataResponse struct {
 	Path          string `json:"path"`
 	Mount         string `json:"mount"`
-	Device        string `json:"dev"`
+	Type          string `json:"type"`
 	Total         int64  `json:"total_in_bytes"`
 	Free          int64  `json:"free_in_bytes"`
 	Available     int64  `json:"available_in_bytes"`
-	DiskReads     int64  `json:"disk_reads"`
-	DiskWrites    int64  `json:"disk_writes"`
-	DiskReadSize  int64  `json:"disk_read_size_in_bytes"`
-	DiskWriteSize int64  `json:"disk_write_size_in_bytes"`
 }

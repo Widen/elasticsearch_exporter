@@ -35,12 +35,12 @@ var (
 		"indices_segments_memory_bytes":           "Current memory size of segments in bytes",
 		"indices_segments_count":                  "Count of index segments on this node",
 		"process_cpu_percent":                     "Percent CPU used by process",
-		"process_mem_resident_size_bytes":         "Resident memory in use by process in bytes",
-		"process_mem_share_size_bytes":            "Shared memory in use by process in bytes",
 		"process_mem_virtual_size_bytes":          "Total virtual memory used in bytes",
 		"process_open_files_count":                "Open file descriptors",
 		"process_max_files_count":                 "Max file descriptors for process",
-		"indices_search_open_contexts":		       "Count of active queries",		
+		"indices_search_open_contexts":		       "Count of active queries",
+		"fs_total_size_bytes":				       "Total file store size in bytes",
+		"fs_available_size_bytes": 	        	   "Available file store size in bytes",
 	}
 	counterMetrics = map[string]string{
 		"indices_fielddata_evictions":           "Evictions from field data",
@@ -70,16 +70,16 @@ var (
  		"indices_search_scroll_time_ms_total":	 "Total scroll time in milliseconds",
 	}
 	counterVecMetrics = map[string]*VecInfo{
-		"jvm_gc_collection_seconds_count": &VecInfo{
+		"jvm_gc_collection_count": &VecInfo{
 			help:   "Count of JVM GC runs",
 			labels: []string{"gc"},
 		},
-		"jvm_gc_collection_seconds_sum": &VecInfo{
-			help:   "GC run time in seconds",
+		"jvm_gc_collection_time_millis": &VecInfo{
+			help:   "GC run time in milliseconds",
 			labels: []string{"gc"},
 		},
-		"process_cpu_time_seconds_sum": &VecInfo{
-			help:   "Process CPU time in seconds",
+		"process_cpu_time_millis": &VecInfo{
+			help:   "Process CPU time in milliseconds",
 			labels: []string{"type"},
 		},
 		"thread_pool_completed_count": &VecInfo{
@@ -307,8 +307,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	for _, stats := range allStats.Nodes {
 		// GC Stats
 		for collector, gcstats := range stats.JVM.GC.Collectors {
-			e.counterVecs["jvm_gc_collection_seconds_count"].WithLabelValues(allStats.ClusterName, stats.Host, collector).Set(float64(gcstats.CollectionCount))
-			e.counterVecs["jvm_gc_collection_seconds_sum"].WithLabelValues(allStats.ClusterName, stats.Host, collector).Set(float64(gcstats.CollectionTime / 1000))
+			e.counterVecs["jvm_gc_collection_count"].WithLabelValues(allStats.ClusterName, stats.Host, collector).Set(float64(gcstats.CollectionCount))
+			e.counterVecs["jvm_gc_collection_time_millis"].WithLabelValues(allStats.ClusterName, stats.Host, collector).Set(float64(gcstats.CollectionTime))
 		}
 
 		// Breaker stats
@@ -385,14 +385,13 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		// Process Stats
 		e.gauges["process_cpu_percent"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Process.CPU.Percent))
-		e.gauges["process_mem_resident_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Process.Memory.Resident))
-		e.gauges["process_mem_share_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Process.Memory.Share))
 		e.gauges["process_mem_virtual_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Process.Memory.TotalVirtual))
 		e.gauges["process_open_files_count"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Process.OpenFD))
 
-		e.counterVecs["process_cpu_time_seconds_sum"].WithLabelValues(allStats.ClusterName, stats.Host, "total").Set(float64(stats.Process.CPU.Total / 1000))
-		e.counterVecs["process_cpu_time_seconds_sum"].WithLabelValues(allStats.ClusterName, stats.Host, "sys").Set(float64(stats.Process.CPU.Sys / 1000))
-		e.counterVecs["process_cpu_time_seconds_sum"].WithLabelValues(allStats.ClusterName, stats.Host, "user").Set(float64(stats.Process.CPU.User / 1000))
+		e.counterVecs["process_cpu_time_millis"].WithLabelValues(allStats.ClusterName, stats.Host, "total").Set(float64(stats.Process.CPU.Total))
+
+		e.gauges["fs_total_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.FS.Total.Total))
+		e.gauges["fs_available_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.FS.Total.Available))
 	}
 
 	// Report metrics.
