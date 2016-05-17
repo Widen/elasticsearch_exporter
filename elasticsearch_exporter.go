@@ -101,6 +101,10 @@ var (
 			help:   "Limit size in bytes for breaker",
 			labels: []string{"breaker"},
 		},
+		"breakers_limit_tripped": &VecInfo{
+			help:   "Breaker tripped",
+			labels: []string{"breaker"},
+		},
 		"jvm_memory_committed_bytes": &VecInfo{
 			help:   "JVM memory currently committed by area",
 			labels: []string{"area"},
@@ -311,6 +315,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		for breaker, bstats := range stats.Breakers {
 			e.gaugeVecs["breakers_estimated_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, breaker).Set(float64(bstats.EstimatedSize))
 			e.gaugeVecs["breakers_limit_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, breaker).Set(float64(bstats.LimitSize))
+			e.gaugeVecs["breakers_tripped"].WithLabelValues(allStats.ClusterName, stats.Host, breaker).Set(float64(bstats.Tripped))
 		}
 
 		// Thread Pool stats
