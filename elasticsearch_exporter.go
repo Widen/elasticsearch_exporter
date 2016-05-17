@@ -101,7 +101,7 @@ var (
 			help:   "Limit size in bytes for breaker",
 			labels: []string{"breaker"},
 		},
-		"breakers_limit_tripped": &VecInfo{
+		"breakers_tripped": &VecInfo{
 			help:   "Breaker tripped",
 			labels: []string{"breaker"},
 		},
