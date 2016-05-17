@@ -27,7 +27,6 @@ type VecInfo struct {
 var (
 	gaugeMetrics = map[string]string{
 		"indices_fielddata_memory_size_bytes":     "Field data cache memory usage in bytes",
-		"indices_filter_cache_memory_size_bytes":  "Filter cache memory usage in bytes",
 		"indices_query_cache_memory_size_bytes":   "Query cache memory usage in bytes",
 		"indices_request_cache_memory_size_bytes": "Request cache memory usage in bytes",
 		"indices_docs":                            "Count of documents on this node",
@@ -41,10 +40,10 @@ var (
 		"process_mem_virtual_size_bytes":          "Total virtual memory used in bytes",
 		"process_open_files_count":                "Open file descriptors",
 		"process_max_files_count":                 "Max file descriptors for process",
+		"indices_search_open_contexts":		       "Count of active queries",		
 	}
 	counterMetrics = map[string]string{
 		"indices_fielddata_evictions":           "Evictions from field data",
-		"indices_filter_cache_evictions":        "Evictions from filter cache",
 		"indices_query_cache_evictions":         "Evictions from query cache",
 		"indices_request_cache_evictions":       "Evictions from request cache",
 		"indices_flush_total":                   "Total flushes",
@@ -56,12 +55,19 @@ var (
 		"indices_store_throttle_time_ms_total":  "Throttle time for index store in milliseconds",
 		"indices_indexing_index_total":          "Total index calls",
 		"indices_indexing_index_time_ms_total":  "Cumulative index time in milliseconds",
+		"indices_indexing_index_failed":         "Total number of failed index calls",
 		"indices_merges_total":                  "Total merges",
 		"indices_merges_total_docs_total":       "Cumulative docs merged",
 		"indices_merges_total_size_bytes_total": "Total merge size in bytes",
 		"indices_merges_total_time_ms_total":    "Total time spent merging in milliseconds",
 		"indices_refresh_total":                 "Total refreshes",
 		"indices_refresh_total_time_ms_total":   "Total time spent refreshing",
+		"indices_search_query_total":		     "Total number of queries",
+ 		"indices_search_query_time_ms_total":	 "Total query time in milliseconds",
+ 		"indices_search_fetch_total":		 	 "Total number of fetches",
+ 		"indices_search_fetch_time_ms_total":	 "Total fetch time in milliseconds",
+ 		"indices_search_scroll_total":		 	 "Total number of scrolls",
+ 		"indices_search_scroll_time_ms_total":	 "Total scroll time in milliseconds",
 	}
 	counterVecMetrics = map[string]*VecInfo{
 		"jvm_gc_collection_seconds_count": &VecInfo{
@@ -329,9 +335,6 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		e.gauges["indices_fielddata_memory_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.FieldData.MemorySize))
 		e.counters["indices_fielddata_evictions"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.FieldData.Evictions))
 
-		e.gauges["indices_filter_cache_memory_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.FilterCache.MemorySize))
-		e.counters["indices_filter_cache_evictions"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.FilterCache.Evictions))
-
 		e.gauges["indices_query_cache_memory_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.QueryCache.MemorySize))
 		e.counters["indices_query_cache_evictions"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.QueryCache.Evictions))
 
@@ -352,6 +355,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		e.counters["indices_indexing_index_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Indexing.IndexTime))
 		e.counters["indices_indexing_index_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Indexing.IndexTotal))
+		e.counters["indices_indexing_index_failed"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Indexing.IndexFailed))
 
 		e.counters["indices_merges_total_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Merges.TotalTime))
 		e.counters["indices_merges_total_size_bytes_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Merges.TotalSize))
@@ -359,6 +363,14 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 		e.counters["indices_refresh_total_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Refresh.TotalTime))
 		e.counters["indices_refresh_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Refresh.Total))
+
+		e.gauges["indices_search_open_contexts"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.OpenContexts))
+		e.counters["indices_search_query_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.QueryTotal))
+		e.counters["indices_search_query_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.QueryTime))
+		e.counters["indices_search_fetch_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.FetchTotal))
+		e.counters["indices_search_fetch_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.FetchTime))
+		e.counters["indices_search_scroll_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.ScrollTotal))
+		e.counters["indices_search_scroll_time_ms_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.Search.ScrollTime))
 
 		// Transport Stats
 		e.counters["transport_rx_packets_total"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Transport.RxCount))

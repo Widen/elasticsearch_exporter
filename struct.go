@@ -104,7 +104,6 @@ type NodeStatsIndicesResponse struct {
 	Get          NodeStatsIndicesGetResponse
 	Search       NodeStatsIndicesSearchResponse
 	FieldData    NodeStatsIndicesCacheResponse `json:"fielddata"`
-	FilterCache  NodeStatsIndicesCacheResponse `json:"filter_cache"`
 	QueryCache   NodeStatsIndicesCacheResponse `json:"query_cache"`
 	RequestCache NodeStatsIndicesCacheResponse `json:"request_cache"`
 	Flush        NodeStatsIndicesFlushResponse
@@ -135,6 +134,7 @@ type NodeStatsIndicesStoreResponse struct {
 type NodeStatsIndicesIndexingResponse struct {
 	IndexTotal    int64 `json:"index_total"`
 	IndexTime     int64 `json:"index_time_in_millis"`
+	IndexFailed   int64 `json:"index_failed"`
 	IndexCurrent  int64 `json:"index_current"`
 	DeleteTotal   int64 `json:"delete_total"`
 	DeleteTime    int64 `json:"delete_time_in_millis"`
@@ -162,13 +162,16 @@ type NodeStatsIndicesGetResponse struct {
 }
 
 type NodeStatsIndicesSearchResponse struct {
-	OpenContext  int64 `json:"open_contexts"`
-	QueryTotal   int64 `json:"query_total"`
-	QueryTime    int64 `json:"query_time_in_millis"`
-	QueryCurrent int64 `json:"query_current"`
-	FetchTotal   int64 `json:"fetch_total"`
-	FetchTime    int64 `json:"fetch_time_in_millis"`
-	FetchCurrent int64 `json:"fetch_current"`
+	OpenContexts  int64 `json:"open_contexts"`
+	QueryTotal    int64 `json:"query_total"`
+	QueryTime     int64 `json:"query_time_in_millis"`
+	QueryCurrent  int64 `json:"query_current"`
+	FetchTotal    int64 `json:"fetch_total"`
+	FetchTime     int64 `json:"fetch_time_in_millis"`
+	FetchCurrent  int64 `json:"fetch_current"`
+	ScrollTotal   int64 `json:"scroll_total"`
+	ScrollTime    int64 `json:"scroll_time_in_millis"`
+	ScrollCurrent int64 `json:"scroll_current"`
 }
 
 type NodeStatsIndicesFlushResponse struct {
