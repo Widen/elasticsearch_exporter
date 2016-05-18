@@ -117,6 +117,14 @@ var (
 			help:   "JVM memory max",
 			labels: []string{"area"},
 		},
+		"jvm_memory_pool_used_bytes": &VecInfo{
+			help:   "JVM memory pool used bytes",
+			labels: []string{"pool"},
+		},
+		"jvm_memory_pool_max_bytes": &VecInfo{
+			help:   "JVM memory pool max bytes",
+			labels: []string{"pool"},
+		},
 		"thread_pool_active_count": &VecInfo{
 			help:   "Thread Pool threads active",
 			labels: []string{"type"},
@@ -335,6 +343,11 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		e.gaugeVecs["jvm_memory_max_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, "heap").Set(float64(stats.JVM.Mem.HeapMax))
 		e.gaugeVecs["jvm_memory_committed_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, "non-heap").Set(float64(stats.JVM.Mem.NonHeapCommitted))
 		e.gaugeVecs["jvm_memory_used_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, "non-heap").Set(float64(stats.JVM.Mem.NonHeapUsed))
+
+		for pool, pstats := range stats.JVM.Mem.Pools {
+			e.gaugeVecs["jvm_memory_pool_used_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, pool).Set(float64(pstats.UsedBytes))
+			e.gaugeVecs["jvm_memory_pool_max_bytes"].WithLabelValues(allStats.ClusterName, stats.Host, pool).Set(float64(pstats.MaxBytes))
+		}
 
 		// Indices Stats
 		e.gauges["indices_fielddata_memory_size_bytes"].WithLabelValues(allStats.ClusterName, stats.Host).Set(float64(stats.Indices.FieldData.MemorySize))
